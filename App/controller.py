@@ -45,7 +45,7 @@ def loadBooks(catalog):
     Carga los libros del archivo.  Por cada libro se indica al
     modelo que debe adicionarlo al catalogo.
     """
-    booksfile = cf.data_dir + 'Moma/Artworks-utf8-small.csv'
+    booksfile = cf.data_dir + 'Moma/Artworks-utf8-large.csv'
     input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
     for book in input_file:
         model.addBook(catalog, book)
@@ -56,6 +56,17 @@ def loadData(catalog):
     estructura de datos
     """
     loadBooks(catalog)
+    loadaristas(catalog)
+
+def loadaristas(catalog):
+    """
+    Carga los libros del archivo.  Por cada libro se indica al
+    modelo que debe adicionarlo al catalogo.
+    """
+    booksfile = cf.data_dir + 'Moma/Artists-utf8-large.csv'
+    input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
+    for book in input_file:
+        model.addBookAuthor(catalog, book)
 
 # Funciones de ordenamiento
 
@@ -74,3 +85,19 @@ def getBooksByAuthor(catalog, authorname):
     """
     authorinfo = model.getBooksByAuthor(catalog, authorname)
     return authorinfo
+
+def getBooksYear(catalog, year):
+    """
+    Retorna los libros que fueron publicados
+    en un año
+    """
+    books = model.getBooksByYear(catalog, year)
+    return books
+
+def primer_req(catalog, año1, año2):
+    """
+    Retorna los libros que fueron publicados
+    en un año
+    """
+    books = model.primer_req(catalog, año1, año2)
+    return books

@@ -25,7 +25,7 @@ import sys
 import controller
 from DISClib.ADT import list as lt
 assert cf
-
+from DISClib.ADT import map as mp
 
 """
 La vista se encarga de la interacción con el usuario
@@ -39,8 +39,23 @@ def print_obras_tecnica(author):
     Imprime la información del autor seleccionado
     """
     if author:
+        print("\n")
         for book in lt.iterator(author):
             print('Titulo: ' + book['Title'] + '  Medio: ' + book['Medium'] + '  Año: ' + book['Date'])
+        print("\n")
+    else:
+        print('No se encontro el autor.\n')
+
+def print_artistas(author):
+    """
+    Imprime la información del autor seleccionado
+    """
+    if author:
+        print("\n")
+        for artistas in lt.iterator(author):
+            print('Nombre: ' + artistas['DisplayName'] + '  Nacio: ' + artistas['BeginDate']+ 
+            '  Murio: ' + artistas['EndDate']+ '  Nacionalidad: ' + artistas['Nationality']
+            + '  Genero: ' + artistas['Gender'])
         print("\n")
     else:
         print('No se encontro el autor.\n')
@@ -73,19 +88,16 @@ while True:
     if int(inputs[0]) == 1:
         print("Cargando información de los archivos ....")
         cont = controller.initCatalog()
-        cont = controller.initCatalog()
         controller.loadData(cont)
 
     elif int(inputs[0]) == 2:
-        tecnica_nombre = input("Nombre de la tecnica que quiere saber el total de obras: ")
-        tecnica_obras = controller.getBooksByAuthor(cont, tecnica_nombre)
-        print('Total de libros: ' + str(lt.size(tecnica_obras['obras'])))
-        cantidad = input("Numero de obras antiguas que desea ver: ")
-        if int(cantidad) > lt.size(tecnica_obras['obras']):
-            print("El numero es mayor al de la cantidad de obras de la tecnica")
-        else: 
-            ordenadas = controller.sortantiguas(tecnica_obras['obras'],int(cantidad))
-            print_obras_tecnica(ordenadas)
+        año1 = input("Buscando libros del año?: ")
+        año2 = input("Buscando libros del año?: ")
+        respuesta = controller.primer_req(cont,año1,año2)
+        print(('-'*5) + "Estos son los 3 primeros artistas del rango dado"+ ('-'*5))
+        print_artistas(respuesta[0])
+        print(('-'*5) + "Estos son los 3 ultimos artistas del rango dado"+ ('-'*5))
+        print_artistas(respuesta[1])
     else:
         sys.exit(0)
 sys.exit(0)
