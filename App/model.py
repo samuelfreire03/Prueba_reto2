@@ -233,12 +233,14 @@ def primer_req(catalogo,año1,año2):
                 for i in lt.iterator(valor['value']['books']):
                     lt.addLast(nueva,i)
     orden = sortnacidos(nueva)
-    if lt.size(orden) < 6:
-        return orden
-    else: 
+    medida = str(lt.size(orden))
+    if lt.size(orden) == 0:
+        primeros = ''
+        ultimos = ''
+    elif lt.size(orden) < 6:
+        primeros = orden
+        ultimos = orden
+    elif lt.size(orden) >= 6:
         primeros = lt.subList(orden, 1, 3)
-        ultimos = lt.newList('ARRAY_LIST')
-        for cont in range(lt.size(orden)-2, lt.size(orden)+1):
-            arte = lt.getElement(orden, cont)
-            lt.addLast(ultimos, arte)
-        return primeros,ultimos
+        ultimos = lt.subList(orden, int(lt.size(orden)-2), 3)
+    return primeros,ultimos,orden,medida

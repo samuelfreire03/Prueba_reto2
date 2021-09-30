@@ -50,7 +50,9 @@ def print_artistas(author):
     """
     Imprime la información del autor seleccionado
     """
-    if author:
+    if author == '':
+        print('No se encontraron artistas nacidos en el rango dado')
+    elif author:
         print("\n")
         for artistas in lt.iterator(author):
             print('Nombre: ' + artistas['DisplayName'] + '  Nacio: ' + artistas['BeginDate']+ 
@@ -94,6 +96,7 @@ while True:
         año1 = input("Buscando libros del año?: ")
         año2 = input("Buscando libros del año?: ")
         respuesta = controller.primer_req(cont,año1,año2)
+        print("El total de artistas nacidos en el rango es de: "+ ' ' + str(respuesta[3]))
         print(('-'*5) + "Estos son los 3 primeros artistas del rango dado"+ ('-'*5))
         print_artistas(respuesta[0])
         print(('-'*5) + "Estos son los 3 ultimos artistas del rango dado"+ ('-'*5))
