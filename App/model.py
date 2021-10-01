@@ -53,11 +53,14 @@ def newCatalog():
 
     Retorna el catalogo inicializado.
     """
-    catalog = {'books': None,'Medios': None,'Artistas':None,'years':None}
+    catalog = {'books': None,'Medios': None,'Artistas':None,'years':None,'Codigos_Artistas':None}
 
     catalog['books'] = lt.newList('SINGLE_LINKED', compareBookIds)
 
-    catalog['Artistas'] = lt.newList('SINGLE_LINKED', compareBookIds)
+    catalog['Artistas'] = mp.newMap(20000,
+                                   maptype='PROBING',
+                                   loadfactor=0.5, 
+                                   comparefunction=compareAuthorsByName)
 
     catalog['Medios'] = mp.newMap(1000,
                                  maptype='CHAINING',
@@ -68,6 +71,11 @@ def newCatalog():
                                  maptype='PROBING',
                                  loadfactor=0.5,
                                  comparefunction=compareMapYear)
+    
+    catalog['Codigos_Artistas'] = mp.newMap(150000,
+                                   maptype='CHAINING',
+                                   loadfactor=4.0,
+                                   comparefunction=compareAuthorsByName)
 
     return catalog
 
@@ -83,14 +91,22 @@ def addBook(catalog, book):
     libro fue publicaco en ese año.
     """
     lt.addLast(catalog['books'], book)
+    
+    artistas = book['ConstituentID'].replace("[","")
+    artistas = artistas.replace("]","")
+    artistas = artistas.split(",")
 
-def addBookAuthor(catalog,book):
+    for codigo in artistas:
+        addBookAuthor(catalog, codigo.strip(), book)
+
+def addArtistas(catalog,book):
     """
     Esta función adiciona un libro a la lista de libros publicados
     por un autor.
     Cuando se adiciona el libro se actualiza el promedio de dicho autor
     """
-    lt.addLast(catalog['Artistas'], book)
+    author = newartista(book['DisplayName'],book['ConstituentID'])
+    mp.put(catalog['Artistas'], book['ConstituentID'], author)
     addBookYear(catalog, book)
 
 def addBookYear(catalog, book):
@@ -128,6 +144,48 @@ def newYear(pubyear):
     entry['books'] = lt.newList('ARRAY_LIST', compareYears)
     return entry
 
+def addBookAuthor(catalog, authorname, book):
+    """
+    Esta función adiciona un libro a la lista de libros publicados
+    por un autor.
+    Cuando se adiciona el libro se actualiza el promedio de dicho autor
+    """
+    authors = catalog['Codigos_Artistas']
+    existauthor = mp.contains(authors, authorname)
+    if existauthor:
+        entry = mp.get(authors, authorname)
+        author = me.getValue(entry)
+    else:
+        author = newAuthor(authorname)
+        mp.put(authors, authorname, author)
+    lt.addLast(author['obras'], book)
+
+def addcodigoautor(catalog, authorname, book):
+    """
+    Esta función adiciona un libro a la lista de libros publicados
+    por un autor.
+    Cuando se adiciona el libro se actualiza el promedio de dicho autor
+    """
+    authors = catalog['Artistas']
+    author = newartista(authorname,book['ConstituentID'])
+    mp.put(authors, authorname, author)
+
+def addtecnica(catalog, authorname, book):
+    """
+    Esta función adiciona un libro a la lista de libros publicados
+    por un autor.
+    Cuando se adiciona el libro se actualiza el promedio de dicho autor
+    """
+
+    existauthor = mp.contains(catalog, authorname)
+    if existauthor:
+        entry = mp.get(catalog, authorname)
+        author = me.getValue(entry)
+    else:
+        author = newTecnica_lista(authorname)
+        mp.put(catalog, authorname, author)
+    lt.addLast(author['obras'], book)
+
 # Funciones para creacion de datos
 
 def newAuthor(name):
@@ -136,12 +194,42 @@ def newAuthor(name):
     y su promedio de ratings. Se crea una lista para guardar los
     libros de dicho autor.
     """
-    tecnica = {'Tecnica': "",
+    artista = {'codigo': "",
               "obras": None,}
-    tecnica['Tecnica'] = name
-    tecnica['obras'] = lt.newList('ARRAY_LIST', compareAuthorsByName)
+    artista['codigo'] = name
+    artista['obras'] = lt.newList('ARRAY_LIST', compareAuthorsByName)
+    return artista
+
+def newartista(name,codigo):
+    """
+    Crea una nueva estructura para modelar los libros de un autor
+    y su promedio de ratings. Se crea una lista para guardar los
+    libros de dicho autor.
+    """
+    artista = {'Nombre': "",
+              "Codigo": ''}
+    artista['Nombre'] = name
+    artista['Codigo'] = codigo
+    return artista
+
+def newTecnica(nombre_tecnica):
+    """
+    Crea una nueva estructura para modelar los libros de
+    un autor y su promedio de ratings
+    """
+    tecnica = {'Tecnica': "", "Cantidad": 0}
+    tecnica['Tecnica'] = nombre_tecnica
+    tecnica['Cantidad'] = None
     return tecnica
 
+def newTecnica_lista(nombre_tecnica):
+    """
+    Crea una nueva estructura para modelar los libros de
+    un autor y su promedio de ratings
+    """
+    tecnica = {'Tecnica': "", "Cantidad": 0}
+    tecnica['Tecnica'] = nombre_tecnica
+    tecnica['obras'] = lt.newList('ARRAY_LIST')
 # Funciones de consulta
 
 def getBooksByAuthor(catalog, authorname):
@@ -161,6 +249,31 @@ def getBooksByYear(catalog, year):
     if year:
         return me.getValue(year)['books']
     return None
+
+def cantidad_tecnicas(artistas):
+
+    cantidad_de_tecnicas_veces = lt.newList('ARRAY_LIST',cmpfunction=comparetecnicas)
+    tecnicas_final = lt.newList('ARRAY_LIST')
+    for partes in lt.iterator(artistas['obras']):
+        lt.addLast(tecnicas_final,partes['Medium'])
+
+    for i in lt.iterator(tecnicas_final):
+        posauthor = lt.isPresent(cantidad_de_tecnicas_veces, i)
+        if posauthor > 0:
+            artista = lt.getElement(cantidad_de_tecnicas_veces, posauthor)
+            artista['Cantidad'] += 1
+        else:
+            artista = newTecnica(i)
+            artista['Cantidad'] = 1
+            lt.addLast(cantidad_de_tecnicas_veces, artista)
+        
+    k = 0
+    for p in lt.iterator(cantidad_de_tecnicas_veces):
+        if int(p['Cantidad']) > k:
+            k = p['Cantidad']
+            maximo = p['Tecnica']
+    
+    return maximo,cantidad_de_tecnicas_veces
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 
@@ -202,6 +315,14 @@ def compareMapYear(id, tag):
 
 def comparenacidos(artista1, artista2):
     return ((artista1['BeginDate']) < (artista2['BeginDate']))
+
+def comparetecnicas(tecnica1, tecnica):
+    if (tecnica1.lower().strip() == tecnica['Tecnica'].lower().strip()):
+        return 0
+    return -1
+
+def comparecanitdad(artista1, artista2):
+    return (float(artista1['Cantidad']) > float(artista2['Cantidad']))
 # Funciones de ordenamiento
 
 def sortantiguas(catalog,size):
@@ -221,6 +342,10 @@ def compareYears(year1, year2):
         return 1
     else:
         return 0
+
+def sortCantidades(catalog):
+    orden = merge.sort(catalog, comparecanitdad)
+    return orden
 
 #completas requerimientos
 
@@ -244,3 +369,33 @@ def primer_req(catalogo,año1,año2):
         primeros = lt.subList(orden, 1, 3)
         ultimos = lt.subList(orden, int(lt.size(orden)-2), 3)
     return primeros,ultimos,orden,medida
+
+def tercer_req(catalog,Artista):
+
+    valores = mp.valueSet(catalog['Artistas'])
+    Tecnicas = mp.newMap(10000,
+                                 maptype='PROBING',
+                                 loadfactor=0.75)
+    for c in lt.iterator(valores):
+            if c['Nombre'] == Artista:
+                codigo = c['Codigo']
+                obras = mp.get(catalog['Codigos_Artistas'],codigo)
+                tecnicas = cantidad_tecnicas(obras['value'])
+                tecnicas_orden = sortCantidades(tecnicas[1])
+                for j in lt.iterator(obras['value']['obras']):
+                    if j['Medium'] == tecnicas[0]:
+                        mp.put(Tecnicas,j['ObjectID'],j)
+                        obras_de_mayortecnica = mp.valueSet(Tecnicas)
+                
+    if lt.size(tecnicas_orden) <= 10:
+        tecnicas_orden = tecnicas_orden
+    elif lt.size(tecnicas_orden) > 10:
+        primeros = lt.subList(tecnicas_orden, 1, 10)
+        tecnicas_orden = primeros
+
+    if lt.size(obras_de_mayortecnica) <= 10:
+        obras_de_mayortecnica = obras_de_mayortecnica
+    elif lt.size(obras_de_mayortecnica) > 10:
+        primeros = lt.subList(obras_de_mayortecnica, 1, 10)
+        obras_de_mayortecnica = primeros
+    return obras_de_mayortecnica,tecnicas_orden,lt.size(obras['value']['obras']),

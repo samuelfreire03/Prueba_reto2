@@ -40,33 +40,34 @@ def initCatalog():
 
 # Funciones para la carga de datos
 
-def loadBooks(catalog):
-    """
-    Carga los libros del archivo.  Por cada libro se indica al
-    modelo que debe adicionarlo al catalogo.
-    """
-    booksfile = cf.data_dir + 'Moma/Artworks-utf8-small.csv'
-    input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
-    for book in input_file:
-        model.addBook(catalog, book)
-
 def loadData(catalog):
     """
     Carga los datos de los archivos y cargar los datos en la
     estructura de datos
     """
     loadBooks(catalog)
-    loadaristas(catalog)
+    loadAristas(catalog)
 
-def loadaristas(catalog):
+
+def loadBooks(catalog):
     """
     Carga los libros del archivo.  Por cada libro se indica al
     modelo que debe adicionarlo al catalogo.
     """
-    booksfile = cf.data_dir + 'Moma/Artists-utf8-small.csv'
+    booksfile = cf.data_dir + 'Moma/Artworks-utf8-large.csv'
     input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
     for book in input_file:
-        model.addBookAuthor(catalog, book)
+        model.addBook(catalog, book)
+
+def loadAristas(catalog):
+    """
+    Carga los libros del archivo.  Por cada libro se indica al
+    modelo que debe adicionarlo al catalogo.
+    """
+    booksfile = cf.data_dir + 'Moma/Artists-utf8-large.csv'
+    input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
+    for book in input_file:
+        model.addArtistas(catalog, book)
 
 # Funciones de ordenamiento
 
@@ -75,6 +76,13 @@ def sortantiguas(catalog,size):
     Ordena los artistas por nacimiento
     """
     orden = model.sortantiguas(catalog,size)
+    return orden
+
+def sortCantidades(catalog):
+    """
+    Ordena los artistas por nacimiento
+    """
+    orden = model.sortCantidades(catalog)
     return orden
 
 # Funciones de consulta sobre el catálogo
@@ -101,3 +109,15 @@ def primer_req(catalog, año1, año2):
     """
     books = model.primer_req(catalog, año1, año2)
     return books
+
+def tercer_req(catalog, artista):
+    """
+    Retorna los libros que fueron publicados
+    en un año
+    """
+    books = model.tercer_req(catalog, artista)
+    return books
+
+def cantidad_tecnicas(catalog):
+    tecnicas = model.cantidad_tecnicas(catalog)
+    return tecnicas

@@ -26,7 +26,8 @@ import controller
 from DISClib.ADT import list as lt
 assert cf
 from DISClib.ADT import map as mp
-
+from prettytable import PrettyTable
+from DISClib.DataStructures import mapentry as me
 """
 La vista se encarga de la interacción con el usuario
 Presenta el menu de opciones y por cada seleccion
@@ -54,10 +55,49 @@ def print_artistas(author):
         print('No se encontraron artistas nacidos en el rango dado')
     elif author:
         print("\n")
+        x = PrettyTable(["Nombre", "Nacio", 'Murio','Nacionalidad','Genero'])
+        x._max_width = {"Nombre" : 20, "Nacio" : 20,"Murio" : 20, "Nacionalidad" : 20,"Genero" : 20}
         for artistas in lt.iterator(author):
-            print('Nombre: ' + artistas['DisplayName'] + '  Nacio: ' + artistas['BeginDate']+ 
-            '  Murio: ' + artistas['EndDate']+ '  Nacionalidad: ' + artistas['Nationality']
-            + '  Genero: ' + artistas['Gender'])
+            x.add_row([artistas['DisplayName']+'\n', artistas['BeginDate'], artistas['EndDate'],artistas['Nationality'],artistas['Gender']])
+        print(x)
+        print("\n")
+    else:
+        print('No se encontro el autor.\n')
+
+def print_obras(author):
+    """
+    Imprime la información del autor seleccionado
+    """
+    if author:
+        print("\n")
+        x = PrettyTable(["Titulo", "Fecha", 'Medio','Dimensiones'])
+        x._max_width = {"Titulo" : 30, "Fecha" : 30,"Medio" : 30, "Dimensiones" : 30}
+        for artistas in lt.iterator(author):
+            if artistas['Medium'] == '':
+                tecnica = 'Unknown'
+            else: 
+                tecnica = artistas['Medium']
+            x.add_row([artistas['Title']+'\n', artistas['Date'],tecnica,artistas['Dimensions']])
+        print(x)
+        print("\n")
+    else:
+        print('No se encontro el autor.\n')
+
+def print_tecnicas(author):
+    """
+    Imprime la información del autor seleccionado
+    """
+    if author:
+        print("\n")
+        x = PrettyTable(["Tecnica", "Cantidad"])
+        x._max_width = {"Tecnica" : 40, "Cantidad" : 40}
+        for artistas in lt.iterator(author):
+            if artistas['Tecnica'] == '':
+                tecnica = 'Unknown'
+            else: 
+                tecnica = artistas['Tecnica']
+            x.add_row([tecnica+'\n', artistas['Cantidad']])
+        print(x)
         print("\n")
     else:
         print('No se encontro el autor.\n')
@@ -65,7 +105,9 @@ def print_artistas(author):
 def printMenu():
     print("Bienvenido")
     print("1- Cargar información en el catálogo")
-    print("2- Cantidad de obras dada, de un medio especificado")
+    print("2- Mostrar los tres primeros y los tres ultimos artistas, segun el orden cronologico de un rango de años")
+    print("3- Mostrar las tres primeras y las tres ultimas obras de arte, segun el orden cronologico de un rango de fechas")
+    print("4- Clasificacion de obras por tecnica, y algunso datos sobre la tecnica mas usada de un artista dado")
     print("0- Salir")
 
 def initCatalog():
@@ -93,14 +135,24 @@ while True:
         controller.loadData(cont)
 
     elif int(inputs[0]) == 2:
-        año1 = input("Buscando libros del año?: ")
-        año2 = input("Buscando libros del año?: ")
+        año1 = input("Porfavor escriba el primer año de su rango: ")
+        año2 = input("Porfavor escriba el ultimo año de su rango: ")
         respuesta = controller.primer_req(cont,año1,año2)
-        print("El total de artistas nacidos en el rango es de: "+ ' ' + str(respuesta[3]))
+        print(('\n') +"El total de artistas nacidos en el rango es de: "+ ' ' + str(respuesta[3])+ '\n')
         print(('-'*5) + "Estos son los 3 primeros artistas del rango dado"+ ('-'*5))
         print_artistas(respuesta[0])
         print(('-'*5) + "Estos son los 3 ultimos artistas del rango dado"+ ('-'*5))
         print_artistas(respuesta[1])
+
+    elif int(inputs[0]) == 3:
+        pass
+    
+    elif int(inputs[0]) == 4:
+        Artista = input("Porfavor, dijite el nombre del artista que desea buscar")
+        respuesta = controller.tercer_req(cont,Artista)
+        print(('\n') +"El total de obras de arte del artista es de: "+ ' ' + str(respuesta[2])+ '\n')
+        print_tecnicas(respuesta[1])
+        print_obras(respuesta[0])
     else:
         sys.exit(0)
 sys.exit(0)
