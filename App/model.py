@@ -32,6 +32,7 @@ from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.Algorithms.Sorting import mergesort as merge
 assert cf
+from datetime import date
 
 """
 Se define la estructura de un catálogo de videos. El catálogo tendrá dos listas, una para los videos, otra para las categorias de
@@ -53,7 +54,7 @@ def newCatalog():
 
     Retorna el catalogo inicializado.
     """
-    catalog = {'books': None,'Medios': None,'Artistas':None,'years':None,'Codigos_Artistas':None}
+    catalog = {'books': None,'Medios': None,'Artistas':None,'years':None,'Codigos_Artistas':None, 'AdquisicionFecha': None, 'Departamento': None}
 
     catalog['books'] = lt.newList('SINGLE_LINKED', compareBookIds)
 
@@ -63,6 +64,11 @@ def newCatalog():
                                    comparefunction=compareAuthorsByName)
 
     catalog['Medios'] = mp.newMap(1000,
+                                 maptype='CHAINING',
+                                 loadfactor=4.0,
+                                 comparefunction=compareAuthorsByName)
+    
+    catalog['Departamento'] = mp.newMap(1000,
                                  maptype='CHAINING',
                                  loadfactor=4.0,
                                  comparefunction=compareAuthorsByName)
@@ -76,6 +82,11 @@ def newCatalog():
                                    maptype='CHAINING',
                                    loadfactor=4.0,
                                    comparefunction=compareAuthorsByName)
+
+    catalog['AdquisicionFecha'] = mp.newMap(150000,
+                                   maptype='PROBING',
+                                   loadfactor=0.5,
+                                   comparefunction=compareMapYear)
 
     return catalog
 
@@ -98,6 +109,8 @@ def addBook(catalog, book):
 
     for codigo in artistas:
         addBookAuthor(catalog, codigo.strip(), book)
+    addDepartamento(catalog, book['Department'].strip(), book)
+    addAdquisionFecha(catalog, book)
 
 def addArtistas(catalog,book):
     """
@@ -134,6 +147,47 @@ def addBookYear(catalog, book):
     except Exception:
         return None
 
+def addAdquisionFecha(catalog, book):
+    """
+    Esta funcion adiciona un libro a la lista de libros que
+    fueron publicados en un año especifico.
+    Los años se guardan en un Map, donde la llave es el año
+    y el valor la lista de libros de ese año.
+    """
+    try:
+        years = catalog['AdquisicionFecha']
+        if (book['DateAcquired'] != ''):
+            pubyear = book['DateAcquired']
+            pubyear = int((date.fromisoformat(pubyear)).strftime("%Y%m%d%H%M%S"))
+        elif (book['DateAcquired'] == ''):
+            pubyear = 0
+        existyear = mp.contains(years, pubyear)
+        if existyear:
+            entry = mp.get(years, pubyear)
+            year = me.getValue(entry)
+        else:
+            year = newYear(pubyear)
+            mp.put(years, pubyear, year)
+        lt.addLast(year['books'], book)
+    except Exception:
+        return None
+
+def addDepartamento(catalog, authorname, book):
+    """
+    Esta función adiciona un libro a la lista de libros publicados
+    por un autor.
+    Cuando se adiciona el libro se actualiza el promedio de dicho autor
+    """
+    authors = catalog['Departamento']
+    existauthor = mp.contains(authors, authorname)
+    if existauthor:
+        entry = mp.get(authors, authorname)
+        author = me.getValue(entry)
+    else:
+        author = newdepartamento(authorname)
+        mp.put(authors, authorname, author)
+    lt.addLast(author['books'], book)
+
 def newYear(pubyear):
     """
     Esta funcion crea la estructura de libros asociados
@@ -141,6 +195,16 @@ def newYear(pubyear):
     """
     entry = {'year': "", "books": None}
     entry['year'] = pubyear
+    entry['books'] = lt.newList('ARRAY_LIST', compareYears)
+    return entry
+
+def newdepartamento(pubyear):
+    """
+    Esta funcion crea la estructura de libros asociados
+    a un año.
+    """
+    entry = {'Departamento': "", "books": None}
+    entry['Departamento'] = pubyear
     entry['books'] = lt.newList('ARRAY_LIST', compareYears)
     return entry
 
@@ -230,6 +294,23 @@ def newTecnica_lista(nombre_tecnica):
     tecnica = {'Tecnica': "", "Cantidad": 0}
     tecnica['Tecnica'] = nombre_tecnica
     tecnica['obras'] = lt.newList('ARRAY_LIST')
+
+def newCosto(codigo_obra,costo,peso,titulo,artistas,clasificacion,fecha,dimensiones,tecnica):
+    """
+    Crea una nueva estructura para modelar los libros de
+    un autor y su promedio de ratings
+    """
+    artista = {'codigo': "", "costo": None, "peso": None}
+    artista['codigo'] = codigo_obra
+    artista['costo'] = costo
+    artista['peso'] = peso
+    artista['titulo'] = titulo
+    artista['artistas'] = artistas
+    artista['clasificacion'] = clasificacion
+    artista['fecha'] = fecha
+    artista['dimensiones'] = dimensiones
+    artista['tecnica'] = tecnica
+    return artista
 # Funciones de consulta
 
 def getBooksByAuthor(catalog, authorname):
@@ -275,6 +356,79 @@ def cantidad_tecnicas(artistas):
     
     return maximo,cantidad_de_tecnicas_veces
 
+def calculo_de_transporte(catalog):
+
+    obras = lt.newList('ARRAY_LIST')
+    for obra in lt.iterator(catalog):
+
+        peso = obra['Weight (kg)'] 
+        altura = obra['Height (cm)'] 
+        ancho = obra['Width (cm)'] 
+        profundidad = obra['Depth (cm)']
+        longitud = obra['Length (cm)']
+        diametro = obra['Diameter (cm)']
+
+        if (altura == 0 or altura == '') and (ancho == 0 or ancho == ''):
+            costo = 48.00
+
+        elif (longitud != 0 and longitud != '') and (ancho != 0 and ancho != '') and (altura == 0 or altura == ''):
+            costo = (float(longitud)*float(ancho)*72)/10000 
+
+        elif (altura != 0 and altura != '') and (ancho != 0 and ancho != ''):
+            costo = (float(altura)*float(ancho)*72)/10000
+            if (profundidad != 0 and profundidad != ''):
+                costo = max((float(altura)*float(ancho)*72)/10000,(float(altura)*float(ancho)*72*float(profundidad))/10000)
+            if (peso != 0 and peso != '') and (profundidad != 0 and profundidad != ''):
+                costo = max((float(peso) * 72)/10000,(float(altura)*float(ancho)*72)/10000,(float(altura)*float(ancho)*72*float(profundidad))/10000)
+            elif (peso != 0 and peso != '') and (profundidad == 0 or profundidad == ''):
+                costo = max((float(peso) * 72)/10000,(float(altura)*float(ancho)*72)/10000)
+        elif (peso != 0 and peso != ''):
+            costo1 = (float(peso) * 72)/10000
+            costo = max(costo1,costo)
+
+        if (diametro != 0 and diametro != '') and (altura != 0 and altura != ''):
+            costo = ((float(diametro)**2)*float(altura)*72*3.14)/10000 
+            
+        if (peso == 0 or peso == ''):
+            pesar = 0
+        else: 
+            pesar = peso 
+        precio = newCosto(obra['ObjectID'],costo,pesar,obra['Title'],obra['ConstituentID'],obra['Classification'],obra['Date'],obra['Dimensions'],obra['Medium'])
+
+        if precio['costo'] == 0:
+            precio['costo'] = 48.00
+        lt.addLast(obras,precio)
+    return obras
+
+def suma_costo(catalog):
+
+    suma = 0
+    for p in lt.iterator(catalog):
+        suma += p['costo']
+
+    return float(suma)
+
+def suma_peso(catalog):
+
+    suma = 0
+    for p in lt.iterator(catalog):
+        suma += float(p['peso'])
+
+    return float(suma)
+
+def obtener_antiguas(catalog):
+    """
+    Retorna los tres ultimos artistas cargados
+    """
+    ordenadas = sortantiguasobras(catalog)
+    con_fecha = lt.newList()
+    orden = lt.newList()
+    for obra in lt.iterator(ordenadas):
+        if obra['fecha'] != '':
+            lt.addLast(con_fecha, obra)
+    orden = lt.subList(con_fecha,1,5)
+    return orden
+
 # Funciones utilizadas para comparar elementos dentro de una lista
 
 def compareAuthorsByName(keyname, author):
@@ -304,6 +458,9 @@ def compareBookIds(id1, id2):
 def compareantiguas(artista1, artista2):
     return ((artista1['Date']) < (artista2['Date']))
 
+def compareantiguasobras(artista1, artista2):
+    return ((artista1['fecha']) < (artista2['fecha']))
+
 def compareMapYear(id, tag):
     tagentry = me.getKey(tag)
     if (id == tagentry):
@@ -323,6 +480,13 @@ def comparetecnicas(tecnica1, tecnica):
 
 def comparecanitdad(artista1, artista2):
     return (float(artista1['Cantidad']) > float(artista2['Cantidad']))
+
+def comparacostos(artista1, artista2):
+    return (float(artista1['costo']) > float(artista2['costo']))
+
+def sortantiguasobras(catalog):
+    orden = merge.sort(catalog, compareantiguasobras)
+    return orden
 # Funciones de ordenamiento
 
 def sortantiguas(catalog,size):
@@ -343,8 +507,34 @@ def compareYears(year1, year2):
     else:
         return 0
 
+def cmpArtworkByDateAcquired(artwork1, artwork2):
+
+    if artwork1['DateAcquired'] == '':
+
+        fecha1 = 0
+    else: 
+        fecha1 = int((date.fromisoformat(artwork1['DateAcquired'])).strftime("%Y%m%d%H%M%S"))
+
+    if artwork2['DateAcquired'] == '':
+
+        fecha2 = 0
+
+    else:
+        fecha2 = int((date.fromisoformat(artwork2['DateAcquired'])).strftime("%Y%m%d%H%M%S"))
+
+    return fecha1 < fecha2
+
 def sortCantidades(catalog):
     orden = merge.sort(catalog, comparecanitdad)
+    return orden
+
+def sortobras(catalog):
+
+    sorted_list = merge.sort(catalog, cmpArtworkByDateAcquired)
+    return sorted_list
+
+def sortcostos(catalog):
+    orden = merge.sort(catalog, comparacostos)
     return orden
 
 #completas requerimientos
@@ -375,14 +565,14 @@ def tercer_req(catalog,Artista):
     valores = mp.valueSet(catalog['Artistas'])
     Tecnicas = mp.newMap(10000,
                                  maptype='PROBING',
-                                 loadfactor=0.75)
+                                 loadfactor=0.5)
     for c in lt.iterator(valores):
             if c['Nombre'] == Artista:
                 codigo = c['Codigo']
                 obras = mp.get(catalog['Codigos_Artistas'],codigo)
                 tecnicas = cantidad_tecnicas(obras['value'])
                 tecnicas_orden = sortCantidades(tecnicas[1])
-                for j in lt.iterator(obras['value']['obras']):
+                for j in lt.iterator(me.getValue(obras)['obras']):
                     if j['Medium'] == tecnicas[0]:
                         mp.put(Tecnicas,j['ObjectID'],j)
                         obras_de_mayortecnica = mp.valueSet(Tecnicas)
@@ -398,4 +588,43 @@ def tercer_req(catalog,Artista):
     elif lt.size(obras_de_mayortecnica) > 10:
         primeros = lt.subList(obras_de_mayortecnica, 1, 10)
         obras_de_mayortecnica = primeros
-    return obras_de_mayortecnica,tecnicas_orden,lt.size(obras['value']['obras']),
+    return obras_de_mayortecnica,tecnicas_orden,lt.size(obras['value']['obras'])
+
+def segundo_req(catalog,fecha_inicial,fecha_final):
+    fecha1 = int((date.fromisoformat(fecha_inicial.replace('/','-'))).strftime("%Y%m%d%H%M%S"))
+    fecha2 = int((date.fromisoformat(fecha_final.replace('/','-'))).strftime("%Y%m%d%H%M%S"))
+    llaves = (mp.keySet(catalog['AdquisicionFecha']))
+    nueva = lt.newList('ARRAY_LIST')
+    for c in lt.iterator(llaves):
+        if c >= fecha1 and c <= fecha2:
+            valor = mp.get(catalog['AdquisicionFecha'],c)
+            lista = me.getValue(valor)['books']
+            for j in lt.iterator(lista):
+                lt.addLast(nueva,j)
+    orden = sortobras(nueva)
+    if lt.size(orden) == 0:
+        primeros = ''
+        ultimos = ''
+    elif lt.size(orden) < 6:
+        primeros = orden
+        ultimos = orden
+    elif lt.size(orden) >= 6:
+        primeros = lt.subList(orden, 1, 3)
+        ultimos = lt.subList(orden, int(lt.size(orden)-2), 3)
+    conteo = 0
+    for k in lt.iterator(orden):
+        if 'purchase' in k['CreditLine'].lower():
+            conteo += 1
+    return primeros,ultimos,lt.size(orden),conteo
+
+def quinto_req(catalog,departamento):
+    total_departamento = mp.get(catalog['Departamento'],departamento)
+    obras_artista = me.getValue(total_departamento)['books']
+    obras = calculo_de_transporte(obras_artista)
+    costo = suma_costo(obras)
+    peso = suma_peso(obras)
+    ordenadas_costo = sortcostos(obras)
+    primerascostosas = lt.subList(ordenadas_costo,1,5)
+    orden_antiguas = sortantiguasobras(obras)
+    ultimas_antiguas = obtener_antiguas(orden_antiguas)
+    return primerascostosas,ultimas_antiguas,costo,peso

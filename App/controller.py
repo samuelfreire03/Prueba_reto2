@@ -110,12 +110,28 @@ def primer_req(catalog, año1, año2):
     books = model.primer_req(catalog, año1, año2)
     return books
 
+def segundo_req(catalog, fecha_inicial, fecha_final):
+    """
+    Retorna los libros que fueron publicados
+    en un año
+    """
+    books = model.segundo_req(catalog, fecha_inicial, fecha_final)
+    return books
+
 def tercer_req(catalog, artista):
     """
     Retorna los libros que fueron publicados
     en un año
     """
     books = model.tercer_req(catalog, artista)
+    return books
+
+def quinto_req(catalog, departamento):
+    """
+    Retorna los libros que fueron publicados
+    en un año
+    """
+    books = model.quinto_req(catalog, departamento)
     return books
 
 def cantidad_tecnicas(catalog):
