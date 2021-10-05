@@ -29,6 +29,7 @@ from DISClib.ADT import map as mp
 from prettytable import PrettyTable
 from DISClib.DataStructures import mapentry as me
 from datetime import date
+import time
 """
 La vista se encarga de la interacción con el usuario
 Presenta el menu de opciones y por cada seleccion
@@ -163,6 +164,7 @@ def printMenu():
     print("4- Clasificacion de obras por tecnica, y algunso datos sobre la tecnica mas usada de un artista dado")
     print("5- ")
     print("6- Clasificacion de obras segund su nacionalidad, y datos imprtantes sobre esta la nacionalidad mas repetida")
+    print("7- Prueba req 3")
     print("0- Salir")
 
 def initCatalog():
@@ -192,14 +194,19 @@ while True:
     elif int(inputs[0]) == 2:
         año1 = input("Porfavor escriba el primer año de su rango: ")
         año2 = input("Porfavor escriba el ultimo año de su rango: ")
+        start_time = time.process_time()
         respuesta = controller.primer_req(cont,año1,año2)
+        stop_time = time.process_time()
+        elapsed_time_mseg = (stop_time - start_time)*1000
         print(('\n') +"El total de artistas nacidos en el rango es de: "+ ' ' + str(respuesta[3])+ '\n')
         print(('-'*5) + "Estos son los 3 primeros artistas del rango dado"+ ('-'*5))
         print_artistas(respuesta[0])
         print(('-'*5) + "Estos son los 3 ultimos artistas del rango dado"+ ('-'*5))
         print_artistas(respuesta[1])
+        print(elapsed_time_mseg)
 
     elif int(inputs[0]) == 3:
+        start_time = time.process_time()
         fecha_inicial = input("Porfavor, dijite la fecha inicial en el formato AAAA/MM/DD del rango que desea buscar: ")
         fecha_final = input("Porfavor, dijite la fecha final en el formato AAAA/MM/DD del rango que desea buscar: ")
         respuesta = controller.segundo_req(cont,fecha_inicial,fecha_final)
@@ -209,25 +216,40 @@ while True:
         print_obrasyartistas(respuesta[0])
         print(('-'*5) + "Estos son los 3 ultimas obras del rango dado"+ ('-'*5))
         print_obrasyartistas(respuesta[1])
+        stop_time = time.process_time()
+        elapsed_time_mseg = (stop_time - start_time)*1000
+        print(elapsed_time_mseg)
 
     
     elif int(inputs[0]) == 4:
+        start_time = time.process_time()
         Artista = input("Porfavor, dijite el nombre del artista que desea buscar")
         respuesta = controller.tercer_req(cont,Artista)
         print(('\n') +"El total de obras de arte del artista es de: "+ ' ' + str(respuesta[2])+ '\n')
+        print(('\n') +"El total de tecnicas utilzadas por el artista es de: "+ ' ' + str(respuesta[3])+ '\n')
         print_tecnicas(respuesta[1])
         print_obras(respuesta[0])
+        stop_time = time.process_time()
+        elapsed_time_mseg = (stop_time - start_time)*1000
+        print(elapsed_time_mseg)
+
     elif int(inputs[0]) == 5:
         pass
     elif int(inputs[0]) == 6:
+        start_time = time.process_time()
         Departamento = input("Porfavor, dijite el deprtamento que desea conocer el costo del tranposrte")
         respuesta = controller.quinto_req(cont,Departamento)
-        print((('\n') +"El total de obras del rango dado es de: "+ ' ' + str(round(respuesta[2],2))+ '\n'))
-        print((('\n') +"El total de obras del rango dado es de: "+ ' ' + str(round(respuesta[3],2))+ '\n'))
+        stop_time = time.process_time()
+        print(('\n') +"El total de obras de arte del artista es de: "+ ' ' + str(respuesta[4])+ '\n')
+        print((('\n') +"El total de costo de transporte es de : "+ ' ' + str(round(respuesta[2],2))+ '\n'))
+        print((('\n') +"El total de peso de las obras es de : "+ ' ' + str(round(respuesta[3],2))+ '\n'))
         print(('-'*5) + "Estos son las 5 obras mas caras del departmento"+ ('-'*5))
         print_obras_especificos(respuesta[0])
         print(('-'*5) + "Estos son las 5 obras mas antiguas del departmento"+ ('-'*5))
         print_obras_especificos(respuesta[1])
+        elapsed_time_mseg = (stop_time - start_time)*1000
+        print(elapsed_time_mseg)
+        
     else:
         sys.exit(0)
 sys.exit(0)

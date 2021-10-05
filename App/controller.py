@@ -85,6 +85,20 @@ def sortCantidades(catalog):
     orden = model.sortCantidades(catalog)
     return orden
 
+def SortAños(catalog):
+    """
+    Ordena los artistas por nacimiento
+    """
+    orden = model.SortAños(catalog)
+    return orden
+
+def sortobras(catalog):
+    """
+    Ordena los artistas por nacimiento
+    """
+    orden = model.sortobras(catalog)
+    return orden
+
 # Funciones de consulta sobre el catálogo
 
 def getBooksByAuthor(catalog, authorname):
@@ -137,3 +151,11 @@ def quinto_req(catalog, departamento):
 def cantidad_tecnicas(catalog):
     tecnicas = model.cantidad_tecnicas(catalog)
     return tecnicas
+
+def funcion_prueba_req3(catalog, artista):
+    """
+    Retorna los libros que fueron publicados
+    en un año
+    """
+    books = model.funcion_prueba_req3(catalog, artista)
+    return books

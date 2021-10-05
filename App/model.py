@@ -87,6 +87,10 @@ def newCatalog():
                                    maptype='PROBING',
                                    loadfactor=0.5,
                                    comparefunction=compareMapYear)
+    catalog['Nombres_Artistas'] = mp.newMap(150000,
+                                   maptype='CHAINING',
+                                   loadfactor=4.0,
+                                   comparefunction=compareAuthorsByName)
 
     return catalog
 
@@ -121,6 +125,7 @@ def addArtistas(catalog,book):
     author = newartista(book['DisplayName'],book['ConstituentID'])
     mp.put(catalog['Artistas'], book['ConstituentID'], author)
     addBookYear(catalog, book)
+    mp.put(catalog['Nombres_Artistas'], book['DisplayName'], book['ConstituentID'])
 
 def addBookYear(catalog, book):
     """
@@ -354,7 +359,7 @@ def cantidad_tecnicas(artistas):
             k = p['Cantidad']
             maximo = p['Tecnica']
     
-    return maximo,cantidad_de_tecnicas_veces
+    return maximo,cantidad_de_tecnicas_veces,lt.size(cantidad_de_tecnicas_veces)
 
 def calculo_de_transporte(catalog):
 
@@ -540,13 +545,13 @@ def sortcostos(catalog):
 #completas requerimientos
 
 def primer_req(catalogo,año1,año2):
-    llaves = mp.keySet(catalogo['years'])
     nueva = lt.newList('ARRAY_LIST')
-    for c in lt.iterator(llaves):
-            if int(c) >= int(año1) and int(c) <= int(año2):
-                valor = mp.get(catalogo['years'],c)
-                for i in lt.iterator(valor['value']['books']):
-                    lt.addLast(nueva,i)
+    años = mp.keySet(catalogo['years'])
+    for c in lt.iterator(años):
+        if int(c) >= int(año1) and int(c) <= int(año2):
+            valor = mp.get(catalogo['years'],c)
+            for i in lt.iterator(me.getValue(valor)['books']):
+                lt.addLast(nueva,i)
     orden = sortnacidos(nueva)
     medida = str(lt.size(orden))
     if lt.size(orden) == 0:
@@ -562,33 +567,27 @@ def primer_req(catalogo,año1,año2):
 
 def tercer_req(catalog,Artista):
 
-    valores = mp.valueSet(catalog['Artistas'])
-    Tecnicas = mp.newMap(10000,
-                                 maptype='PROBING',
-                                 loadfactor=0.5)
-    for c in lt.iterator(valores):
-            if c['Nombre'] == Artista:
-                codigo = c['Codigo']
-                obras = mp.get(catalog['Codigos_Artistas'],codigo)
-                tecnicas = cantidad_tecnicas(obras['value'])
-                tecnicas_orden = sortCantidades(tecnicas[1])
-                for j in lt.iterator(me.getValue(obras)['obras']):
-                    if j['Medium'] == tecnicas[0]:
-                        mp.put(Tecnicas,j['ObjectID'],j)
-                        obras_de_mayortecnica = mp.valueSet(Tecnicas)
-                
+    valores = mp.get(catalog['Nombres_Artistas'],Artista)
+    valores_especificos = mp.get(catalog['Codigos_Artistas'],me.getValue(valores))
+    tecnicas = cantidad_tecnicas(me.getValue(valores_especificos))
+    tecnicas_orden = sortCantidades(tecnicas[1])
+    obras = lt.newList('ARRAY_LIST')
+    for obra in lt.iterator(me.getValue(valores_especificos)['obras']):
+        if obra['Medium'] == tecnicas[0]:
+            lt.addLast(obras,obra)
+
     if lt.size(tecnicas_orden) <= 10:
         tecnicas_orden = tecnicas_orden
     elif lt.size(tecnicas_orden) > 10:
         primeros = lt.subList(tecnicas_orden, 1, 10)
         tecnicas_orden = primeros
 
-    if lt.size(obras_de_mayortecnica) <= 10:
-        obras_de_mayortecnica = obras_de_mayortecnica
-    elif lt.size(obras_de_mayortecnica) > 10:
-        primeros = lt.subList(obras_de_mayortecnica, 1, 10)
-        obras_de_mayortecnica = primeros
-    return obras_de_mayortecnica,tecnicas_orden,lt.size(obras['value']['obras'])
+    if lt.size(obras) <= 10:
+        obras = obras
+    elif lt.size(obras) > 10:
+        primeros = lt.subList(obras, 1, 10)
+        obras = primeros
+    return obras,tecnicas_orden,lt.size(me.getValue(valores_especificos)['obras']),tecnicas[2]
 
 def segundo_req(catalog,fecha_inicial,fecha_final):
     fecha1 = int((date.fromisoformat(fecha_inicial.replace('/','-'))).strftime("%Y%m%d%H%M%S"))
@@ -627,4 +626,4 @@ def quinto_req(catalog,departamento):
     primerascostosas = lt.subList(ordenadas_costo,1,5)
     orden_antiguas = sortantiguasobras(obras)
     ultimas_antiguas = obtener_antiguas(orden_antiguas)
-    return primerascostosas,ultimas_antiguas,costo,peso
+    return primerascostosas,ultimas_antiguas,costo,peso,lt.size(obras)
