@@ -382,17 +382,19 @@ def calculo_de_transporte(catalog):
         elif (altura != 0 and altura != '') and (ancho != 0 and ancho != ''):
             costo = (float(altura)*float(ancho)*72)/10000
             if (profundidad != 0 and profundidad != ''):
-                costo = max((float(altura)*float(ancho)*72)/10000,(float(altura)*float(ancho)*72*float(profundidad))/10000)
+                costo = max((float(altura)*float(ancho)*72)/10000,(float(altura)*float(ancho)*72*float(profundidad))/1000000)
             if (peso != 0 and peso != '') and (profundidad != 0 and profundidad != ''):
-                costo = max((float(peso) * 72)/10000,(float(altura)*float(ancho)*72)/10000,(float(altura)*float(ancho)*72*float(profundidad))/10000)
+                costo = max((float(peso) * 72),(float(altura)*float(ancho)*72)/10000,(float(altura)*float(ancho)*72*float(profundidad))/1000000)
             elif (peso != 0 and peso != '') and (profundidad == 0 or profundidad == ''):
-                costo = max((float(peso) * 72)/10000,(float(altura)*float(ancho)*72)/10000)
+                costo = max((float(peso) * 72),(float(altura)*float(ancho)*72)/10000)
         elif (peso != 0 and peso != ''):
-            costo1 = (float(peso) * 72)/10000
+            costo1 = (float(peso) * 72)
             costo = max(costo1,costo)
 
         if (diametro != 0 and diametro != '') and (altura != 0 and altura != ''):
-            costo = ((float(diametro)**2)*float(altura)*72*3.14)/10000 
+            costo = (((float(diametro)/2)**2)*float(altura)*72*3.14)/1000000
+        elif (diametro != 0 and diametro != '') and (altura == 0 and altura == ''):
+            costo = (((float(diametro)/2)**2)*72*3.14)/10000 
             
         if (peso == 0 or peso == ''):
             pesar = 0
