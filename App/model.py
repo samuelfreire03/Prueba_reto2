@@ -587,7 +587,7 @@ def tercer_req(catalog,Artista):
     elif lt.size(obras) > 10:
         primeros = lt.subList(obras, 1, 10)
         obras = primeros
-    return obras,tecnicas_orden,lt.size(me.getValue(valores_especificos)['obras']),tecnicas[2]
+    return obras,tecnicas_orden,lt.size(me.getValue(valores_especificos)['obras']),tecnicas[2],tecnicas[0]
 
 def segundo_req(catalog,fecha_inicial,fecha_final):
     fecha1 = int((date.fromisoformat(fecha_inicial.replace('/','-'))).strftime("%Y%m%d%H%M%S"))

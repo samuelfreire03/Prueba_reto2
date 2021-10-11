@@ -164,7 +164,6 @@ def printMenu():
     print("4- Clasificacion de obras por tecnica, y algunso datos sobre la tecnica mas usada de un artista dado")
     print("5- ")
     print("6- Clasificacion de obras segund su nacionalidad, y datos imprtantes sobre esta la nacionalidad mas repetida")
-    print("7- Prueba req 3")
     print("0- Salir")
 
 def initCatalog():
@@ -211,7 +210,7 @@ while True:
         fecha_final = input("Porfavor, dijite la fecha final en el formato AAAA/MM/DD del rango que desea buscar: ")
         respuesta = controller.segundo_req(cont,fecha_inicial,fecha_final)
         print(('\n') +"El total de obras del rango dado es de: "+ ' ' + str(respuesta[2])+ '\n')
-        print(('\n') +"El total de obras de arte del artista es de: "+ ' ' + str(respuesta[3])+ '\n')
+        print(('\n') +"El total de obras que fueron compradas en el rango es de : "+ ' ' + str(respuesta[3])+ '\n')
         print(('-'*5) + "Estos son los 3 primeras obras del rango dado"+ ('-'*5))
         print_obrasyartistas(respuesta[0])
         print(('-'*5) + "Estos son los 3 ultimas obras del rango dado"+ ('-'*5))
@@ -227,6 +226,7 @@ while True:
         respuesta = controller.tercer_req(cont,Artista)
         print(('\n') +"El total de obras de arte del artista es de: "+ ' ' + str(respuesta[2])+ '\n')
         print(('\n') +"El total de tecnicas utilzadas por el artista es de: "+ ' ' + str(respuesta[3])+ '\n')
+        print(('\n') +"La tecnica mas utilizada por el artista fue : "+ ' ' + str(respuesta[4])+ '\n')
         print_tecnicas(respuesta[1])
         print_obras(respuesta[0])
         stop_time = time.process_time()
@@ -240,7 +240,7 @@ while True:
         Departamento = input("Porfavor, dijite el deprtamento que desea conocer el costo del tranposrte")
         respuesta = controller.quinto_req(cont,Departamento)
         stop_time = time.process_time()
-        print(('\n') +"El total de obras de arte del artista es de: "+ ' ' + str(respuesta[4])+ '\n')
+        print(('\n') +"El total de obras a transportar es de: "+ ' ' + str(respuesta[4])+ '\n')
         print((('\n') +"El total de costo de transporte es de : "+ ' ' + str(round(respuesta[2],2))+ '\n'))
         print((('\n') +"El total de peso de las obras es de : "+ ' ' + str(round(respuesta[3],2))+ '\n'))
         print(('-'*5) + "Estos son las 5 obras mas caras del departmento"+ ('-'*5))
