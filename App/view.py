@@ -189,6 +189,8 @@ while True:
         print("Cargando información de los archivos ....")
         cont = controller.initCatalog()
         controller.loadData(cont)
+        print('Obras cargadas: ' + str(lt.size(cont['books'])))
+        print('Artistas cargados: ' + str(mp.size(cont['Artistas'])))
 
     elif int(inputs[0]) == 2:
         año1 = input("Porfavor escriba el primer año de su rango: ")
